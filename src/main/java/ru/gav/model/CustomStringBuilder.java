@@ -1,31 +1,28 @@
 package ru.gav.model;
 
-import jdk.internal.util.ArraysSupport;
 import ru.gav.snapshot.Snapshot;
 
-import java.util.Arrays;
 
-
-
-public class CustomAbstractStringBuilder {
+public class CustomStringBuilder {
     private char[] buffer;
     private int size;
     private Snapshot previousState;
 
     private static final int INITIAL_CAPACITY = 16;
 
-    public CustomAbstractStringBuilder() {
+    public CustomStringBuilder() {
         buffer = new char[INITIAL_CAPACITY];
         size = 0;
     }
 
-    public CustomAbstractStringBuilder(String str) {
+    public CustomStringBuilder(String str) {
         buffer = new char[Math.max(INITIAL_CAPACITY, str.length())];
         size = 0;
         append(str);
     }
 
-    public CustomAbstractStringBuilder append(String str) {
+    public CustomStringBuilder append(String str) {
+        savePreviousState();
         if (str == null) str = "null";
         ensureCapacity(size + str.length());
         for (int i = 0; i < str.length(); i++) {
@@ -34,7 +31,8 @@ public class CustomAbstractStringBuilder {
         return this;
     }
 
-    public CustomAbstractStringBuilder append(char c) {
+    public CustomStringBuilder append(char c) {
+        savePreviousState();
         ensureCapacity(size + 1);
         buffer[size++] = c;
         return this;
@@ -66,8 +64,14 @@ public class CustomAbstractStringBuilder {
         return new String(buffer, 0, size);
     }
 
-    public CustomAbstractStringBuilder undo(){
+    public CustomStringBuilder undo() {
+        this.buffer = previousState.getBufferState();
+        this.size = previousState.getSizeState();
+        return this;
+    }
 
+    private void savePreviousState() {
+        this.previousState = Snapshot.create(buffer, size);
     }
 
 }
